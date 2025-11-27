@@ -21,7 +21,7 @@ const powerBarFill = document.getElementById('power-bar-fill');
 const powerValueEl = document.getElementById('power-value');
 
 // Constants
-const GOALKEEPER_BASE_SPEED = 0.5; // seconds to reach a position
+const GOALKEEPER_BASE_SPEED = 0.3; // seconds to reach a position (faster = lower number)
 const POWER_BAR_SPEED = 2; // Speed of power bar animation (lower = faster)
 
 // Position mapping for goalkeeper and ball
