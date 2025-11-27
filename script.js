@@ -74,6 +74,7 @@ function initializeBall() {
     ball.style.bottom = '80px';  // In the field area (field is 200px, starts at bottom)
     ball.style.left = '50%';
     ball.style.transform = 'translateX(-50%)';
+    ball.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // Reset to default
     ball.classList.remove('shooting', 'in-hands');
 }
 
@@ -186,8 +187,15 @@ function moveGoalkeeper(position) {
 }
 
 // Shoot ball to position
-function shootBall(target, isSaved, goalkeeperPosition) {
+function shootBall(target, isSaved, goalkeeperPosition, shotPower) {
     ball.classList.add('shooting');
+    
+    // Calculate ball speed based on power
+    // Weak shots: 0.8s, Medium: 0.6s, Strong: 0.4s
+    const ballSpeed = 0.8 - (shotPower / 100) * 0.4;
+    
+    // Apply transition duration based on power
+    ball.style.transition = `all ${ballSpeed}s cubic-bezier(0.33, 0.01, 0.12, 1.01)`;
     
     // If saved, ball goes to goalkeeper's position (caught)
     // Otherwise, ball goes to the target position (goal)
@@ -201,7 +209,7 @@ function shootBall(target, isSaved, goalkeeperPosition) {
     if (isSaved) {
         setTimeout(() => {
             ball.classList.add('in-hands');
-        }, 500);
+        }, ballSpeed * 1000 * 0.8); // Slightly before ball arrives
     }
 }
 
@@ -257,13 +265,17 @@ function handleShoot(event) {
     // Start shooter animation
     animateShooterKick();
     
+    // Calculate ball speed for timing
+    const ballSpeed = 0.8 - (shotPower / 100) * 0.4;
+    
     // After shooter runs up and kicks (600ms), move ball and goalkeeper
     setTimeout(() => {
         moveGoalkeeper(goalkeeperPosition);
-        shootBall(target, isSaved, goalkeeperPosition);
+        shootBall(target, isSaved, goalkeeperPosition, shotPower);
     }, 600);
     
-    // Check result after all animations complete
+    // Check result after all animations complete (600ms kick + ball travel time)
+    const resultDelay = 600 + (ballSpeed * 1000);
     setTimeout(() => {
         const targetSection = document.querySelector(`.goal-section[data-position="${target}"]`);
         
@@ -315,7 +327,7 @@ function handleShoot(event) {
                 }
             }, 500);
         }, 2000);
-    }, 1300);
+    }, resultDelay);
 }
 
 // Reset game
