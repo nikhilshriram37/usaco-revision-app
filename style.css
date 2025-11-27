@@ -245,7 +245,7 @@ h1 {
 /* Ball */
 .ball {
     position: absolute;
-    bottom: 40%;
+    bottom: 80px;  /* Start in field area */
     left: 50%;
     transform: translateX(-50%);
     font-size: 2.5em;

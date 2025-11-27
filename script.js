@@ -15,37 +15,40 @@ const shooter = document.getElementById('shooter');
 const goalSections = document.querySelectorAll('.goal-section');
 const goalContainer = document.querySelector('.goal-container');
 
-// Position mapping for goalkeeper and ball in goal area
-// Goal container: 300px height
-// Goal frame: top 20px, height 150px (50% of 300px), centered horizontally (15% to 85%)
-// Goal net: 3x2 grid inside goal frame
-// Top row: 20px to 95px from top (205px to 280px from bottom)
-// Bottom row: 95px to 170px from top (130px to 205px from bottom)
-// Columns: left (15%-38.33%), center (38.33%-61.66%), right (61.66%-85%)
+// Position mapping for goalkeeper and ball
+// Game area total: goal-container (300px) + field (200px) = 500px height
+// Goal container: 0-300px from bottom (200-500px from bottom of game-area)
+// Goal frame: starts at 280px from bottom, height 150px, ends at 430px from bottom
+// Goal net grid (3x2): 
+//   - Top row centers: ~405px from bottom
+//   - Bottom row centers: ~318px from bottom
+//   - Left column: ~27% from left
+//   - Center column: 50% from left  
+//   - Right column: ~73% from left
 const goalPositions = {
     'top-left': { 
         goalkeeper: { bottom: '58%', left: '27%' },
-        ball: { bottom: '243px', left: '27%' }  // Top-left grid cell
+        ball: { bottom: '405px', left: '27%' }  // Top-left grid cell
     },
     'top-center': { 
         goalkeeper: { bottom: '58%', left: '50%' },
-        ball: { bottom: '243px', left: '50%' }  // Top-center grid cell
+        ball: { bottom: '405px', left: '50%' }  // Top-center grid cell
     },
     'top-right': { 
         goalkeeper: { bottom: '58%', left: '73%' },
-        ball: { bottom: '243px', left: '73%' }  // Top-right grid cell
+        ball: { bottom: '405px', left: '73%' }  // Top-right grid cell
     },
     'bottom-left': { 
         goalkeeper: { bottom: '45%', left: '27%' },
-        ball: { bottom: '168px', left: '27%' }  // Bottom-left grid cell
+        ball: { bottom: '318px', left: '27%' }  // Bottom-left grid cell
     },
     'bottom-center': { 
         goalkeeper: { bottom: '45%', left: '50%' },
-        ball: { bottom: '168px', left: '50%' }  // Bottom-center grid cell
+        ball: { bottom: '318px', left: '50%' }  // Bottom-center grid cell
     },
     'bottom-right': { 
         goalkeeper: { bottom: '45%', left: '73%' },
-        ball: { bottom: '168px', left: '73%' }  // Bottom-right grid cell
+        ball: { bottom: '318px', left: '73%' }  // Bottom-right grid cell
     }
 };
 
@@ -59,7 +62,7 @@ function initializeGoalkeeper() {
 
 // Initialize ball position
 function initializeBall() {
-    ball.style.bottom = '40%';
+    ball.style.bottom = '80px';  // In the field area (field is 200px, starts at bottom)
     ball.style.left = '50%';
     ball.style.transform = 'translateX(-50%)';
     ball.classList.remove('shooting', 'in-hands');
