@@ -100,23 +100,29 @@ function startPowerBar() {
 
 // Stop power bar and return current power (0-100)
 function stopPowerBar() {
+    // Immediately stop animation and clear interval to prevent race condition
     powerBarAnimating = false;
+    if (powerBarInterval) {
+        clearInterval(powerBarInterval);
+        powerBarInterval = null;
+    }
     powerBarFill.classList.remove('animating');
     
-    // currentPower is already set by animatePowerBar, just use it directly
+    // Capture the current power value (already set by animatePowerBar)
+    const finalPower = currentPower;
     
     // Update display
     let powerText = '';
-    if (currentPower < 33) {
-        powerText = `Weak (${Math.round(currentPower)}%)`;
-    } else if (currentPower < 66) {
-        powerText = `Medium (${Math.round(currentPower)}%)`;
+    if (finalPower < 33) {
+        powerText = `Weak (${Math.round(finalPower)}%)`;
+    } else if (finalPower < 66) {
+        powerText = `Medium (${Math.round(finalPower)}%)`;
     } else {
-        powerText = `Strong (${Math.round(currentPower)}%)`;
+        powerText = `Strong (${Math.round(finalPower)}%)`;
     }
     powerValueEl.textContent = powerText;
     
-    return currentPower;
+    return finalPower;
 }
 
 // Animate power bar manually (smoother than CSS animation for stopping)
