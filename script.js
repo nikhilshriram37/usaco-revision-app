@@ -75,7 +75,7 @@ function initializeBall() {
     ball.style.left = '50%';
     ball.style.transform = 'translateX(-50%)';
     ball.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // Reset to default
-    ball.classList.remove('shooting', 'in-hands');
+    ball.classList.remove('shooting', 'in-hands', 'goal-scored');
 }
 
 // Initialize shooter position
@@ -324,6 +324,7 @@ function handleShoot(event) {
             playerScoreEl.textContent = playerScore;
             messageEl.textContent = '⚽ GOAL! You scored!';
             messageEl.className = 'message goal';
+            ball.classList.add('goal-scored');
             if (targetSection) targetSection.classList.add('goal');
         }
         
