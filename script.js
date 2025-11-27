@@ -159,22 +159,42 @@ function calculateDistance(pos1Left, pos2Left) {
 
 // Determine if goalkeeper can save based on power and distance
 function canGoalkeeperSave(shotPower, targetPosition, goalkeeperPosition) {
-    // Calculate distance goalkeeper needs to travel
-    const distance = calculateDistance(
-        goalPositions[targetPosition].goalkeeper.left,
-        goalPositions[goalkeeperPosition].goalkeeper.left
-    );
-    
     // Shot speed based on power (higher power = faster shot = less time for keeper)
     // Weak shots: 0.8s, Medium: 0.6s, Strong: 0.4s
     const shotSpeed = 0.8 - (shotPower / 100) * 0.4;
     
-    // Goalkeeper speed based on distance
-    // Base speed is 0.5s to reach adjacent position (23% distance)
-    const timeNeeded = GOALKEEPER_BASE_SPEED * (distance / 23);
+    // Goalkeeper's fixed dive speed (0.4s from CSS)
+    const keeperDiveSpeed = 0.4;
     
-    // Goalkeeper can save if they have enough time
-    return timeNeeded <= shotSpeed;
+    if (targetPosition === goalkeeperPosition) {
+        // Goalkeeper guessed correctly - they'll be there in time
+        return true;
+    }
+    
+    // Goalkeeper guessed wrong - can they redirect?
+    // Step 1: Calculate time to reach their initial (wrong) position
+    const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
+    const timeToWrongSpot = GOALKEEPER_BASE_SPEED * (initialDistance / 23);
+    
+    // Step 2: Calculate time remaining after reaching wrong spot
+    const timeRemaining = shotSpeed - timeToWrongSpot;
+    
+    // Step 3: If no time remaining, ball already entered goal
+    if (timeRemaining <= 0) {
+        return false; // Ball entered goal before keeper reached wrong spot
+    }
+    
+    // Step 4: Calculate distance from wrong spot to actual target
+    const redirectDistance = calculateDistance(
+        goalPositions[goalkeeperPosition].goalkeeper.left,
+        goalPositions[targetPosition].goalkeeper.left
+    );
+    
+    // Step 5: Calculate time needed to redirect to correct position
+    const timeToRedirect = GOALKEEPER_BASE_SPEED * (redirectDistance / 23);
+    
+    // Step 6: Goalkeeper can save if they can redirect in time
+    return timeToRedirect <= timeRemaining;
 }
 
 // Move goalkeeper to dive position
@@ -197,9 +217,9 @@ function shootBall(target, isSaved, goalkeeperPosition, shotPower) {
     // Apply transition duration based on power
     ball.style.transition = `all ${ballSpeed}s cubic-bezier(0.33, 0.01, 0.12, 1.01)`;
     
-    // If saved, ball goes to goalkeeper's position (caught)
-    // Otherwise, ball goes to the target position (goal)
-    const finalPosition = isSaved ? goalPositions[goalkeeperPosition].ball : goalPositions[target].ball;
+    // Ball always goes to the target position (where player shot)
+    // If saved, goalkeeper will be there to catch it (either guessed right or redirected)
+    const finalPosition = goalPositions[target].ball;
     
     // Animate ball to final position
     ball.style.bottom = finalPosition.bottom;
@@ -270,8 +290,20 @@ function handleShoot(event) {
     
     // After shooter runs up and kicks (600ms), move ball and goalkeeper
     setTimeout(() => {
+        // Goalkeeper dives to their chosen position
         moveGoalkeeper(goalkeeperPosition);
         shootBall(target, isSaved, goalkeeperPosition, shotPower);
+        
+        // If saved and goalkeeper guessed wrong, show redirection
+        if (isSaved && target !== goalkeeperPosition) {
+            const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
+            const timeToWrongSpot = (GOALKEEPER_BASE_SPEED * (initialDistance / 23)) * 1000;
+            
+            // After reaching wrong spot, redirect to correct position
+            setTimeout(() => {
+                moveGoalkeeper(target);
+            }, timeToWrongSpot);
+        }
     }, 600);
     
     // Check result after all animations complete (600ms kick + ball travel time)
