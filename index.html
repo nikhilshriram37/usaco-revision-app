@@ -22,27 +22,73 @@
         </div>
 
         <div class="game-area">
-            <div class="goal">
-                <div class="goal-section" data-position="top-left">
-                    <button class="shoot-btn" data-target="top-left">↖</button>
+            <!-- Goal structure -->
+            <div class="goal-container">
+                <div class="goal-frame">
+                    <div class="goal-net">
+                        <div class="goal-section" data-position="top-left"></div>
+                        <div class="goal-section" data-position="top-center"></div>
+                        <div class="goal-section" data-position="top-right"></div>
+                        <div class="goal-section" data-position="bottom-left"></div>
+                        <div class="goal-section" data-position="bottom-center"></div>
+                        <div class="goal-section" data-position="bottom-right"></div>
+                    </div>
+                    <div class="goal-posts">
+                        <div class="post left"></div>
+                        <div class="post right"></div>
+                        <div class="crossbar"></div>
+                    </div>
                 </div>
-                <div class="goal-section" data-position="top-center">
-                    <button class="shoot-btn" data-target="top-center">↑</button>
+                
+                <!-- Goalkeeper -->
+                <div id="goalkeeper" class="goalkeeper">
+                    <div class="goalkeeper-body">
+                        <div class="goalkeeper-head">😐</div>
+                        <div class="goalkeeper-torso"></div>
+                        <div class="goalkeeper-arms">
+                            <div class="arm left">🤚</div>
+                            <div class="arm right">🤚</div>
+                        </div>
+                        <div class="goalkeeper-legs">
+                            <div class="leg left"></div>
+                            <div class="leg right"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="goal-section" data-position="top-right">
-                    <button class="shoot-btn" data-target="top-right">↗</button>
-                </div>
-                <div class="goal-section" data-position="bottom-left">
-                    <button class="shoot-btn" data-target="bottom-left">←</button>
-                </div>
-                <div class="goal-section" data-position="bottom-center">
-                    <button class="shoot-btn" data-target="bottom-center">•</button>
-                </div>
-                <div class="goal-section" data-position="bottom-right">
-                    <button class="shoot-btn" data-target="bottom-right">→</button>
-                </div>
-                <div id="goalkeeper" class="goalkeeper">🧤</div>
+            </div>
+            
+            <!-- Field area -->
+            <div class="field">
+                <div class="penalty-spot"></div>
+                
+                <!-- Ball -->
                 <div id="ball" class="ball">⚽</div>
+                
+                <!-- Shooter -->
+                <div id="shooter" class="shooter">
+                    <div class="shooter-body">
+                        <div class="shooter-head">😤</div>
+                        <div class="shooter-torso"></div>
+                        <div class="shooter-legs">
+                            <div class="leg left"></div>
+                            <div class="leg right"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shooting controls -->
+        <div class="shooting-controls">
+            <div class="control-row">
+                <button class="shoot-btn" data-target="top-left">↖ Top Left</button>
+                <button class="shoot-btn" data-target="top-center">↑ Top Center</button>
+                <button class="shoot-btn" data-target="top-right">↗ Top Right</button>
+            </div>
+            <div class="control-row">
+                <button class="shoot-btn" data-target="bottom-left">← Bottom Left</button>
+                <button class="shoot-btn" data-target="bottom-center">• Center</button>
+                <button class="shoot-btn" data-target="bottom-right">→ Bottom Right</button>
             </div>
         </div>
 
