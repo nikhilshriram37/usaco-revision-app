@@ -103,11 +103,7 @@ function stopPowerBar() {
     powerBarAnimating = false;
     powerBarFill.classList.remove('animating');
     
-    // Get current width percentage
-    const computedStyle = window.getComputedStyle(powerBarFill);
-    const width = parseFloat(computedStyle.width);
-    const trackWidth = parseFloat(window.getComputedStyle(powerBarFill.parentElement).width);
-    currentPower = (width / trackWidth) * 100;
+    // currentPower is already set by animatePowerBar, just use it directly
     
     // Update display
     let powerText = '';
@@ -126,7 +122,7 @@ function stopPowerBar() {
 // Animate power bar manually (smoother than CSS animation for stopping)
 let powerBarInterval;
 function animatePowerBar() {
-    let power = 0;
+    currentPower = 0; // Use global currentPower variable
     let direction = 1;
     
     powerBarInterval = setInterval(() => {
@@ -135,17 +131,17 @@ function animatePowerBar() {
             return;
         }
         
-        power += direction * 4; // Faster increment (was 2)
+        currentPower += direction * 4; // Update global variable
         
-        if (power >= 100) {
-            power = 100;
+        if (currentPower >= 100) {
+            currentPower = 100;
             direction = -1;
-        } else if (power <= 0) {
-            power = 0;
+        } else if (currentPower <= 0) {
+            currentPower = 0;
             direction = 1;
         }
         
-        powerBarFill.style.width = power + '%';
+        powerBarFill.style.width = currentPower + '%';
     }, 15); // Faster interval (was 20ms)
 }
 
