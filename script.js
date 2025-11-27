@@ -135,7 +135,7 @@ function animatePowerBar() {
             return;
         }
         
-        power += direction * 6; // Even faster increment (was 4)
+        power += direction * 4; // Faster increment (was 2)
         
         if (power >= 100) {
             power = 100;
@@ -146,7 +146,7 @@ function animatePowerBar() {
         }
         
         powerBarFill.style.width = power + '%';
-    }, 10); // Even faster interval (was 15ms)
+    }, 15); // Faster interval (was 20ms)
 }
 
 // Calculate distance between two positions (as percentage)
