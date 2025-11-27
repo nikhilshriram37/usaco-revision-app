@@ -129,7 +129,7 @@ function stopPowerBar() {
 let powerBarInterval;
 function animatePowerBar() {
     currentPower = 0; // Use global currentPower variable
-    let direction = 1;
+    powerBarDirection = 1;
     
     powerBarInterval = setInterval(() => {
         if (!powerBarAnimating) {
@@ -137,15 +137,21 @@ function animatePowerBar() {
             return;
         }
         
-        currentPower += direction * 4; // Update global variable
-        
+        // Check bounds BEFORE updating to prevent overshooting
         if (currentPower >= 100) {
             currentPower = 100;
-            direction = -1;
+            powerBarDirection = -1;
         } else if (currentPower <= 0) {
             currentPower = 0;
-            direction = 1;
+            powerBarDirection = 1;
         }
+        
+        // Now update with the correct direction
+        currentPower += powerBarDirection * 4;
+        
+        // Clamp to valid range
+        if (currentPower > 100) currentPower = 100;
+        if (currentPower < 0) currentPower = 0;
         
         powerBarFill.style.width = currentPower + '%';
     }, 15); // Faster interval (was 20ms)
