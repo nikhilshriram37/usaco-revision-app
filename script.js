@@ -16,30 +16,33 @@ const goalSections = document.querySelectorAll('.goal-section');
 const goalContainer = document.querySelector('.goal-container');
 
 // Position mapping for goalkeeper and ball in goal area
+// Goal is at top of goal-container (300px height)
+// Goal frame starts at 20px from top, 50% height = 150px
+// So goal net is from 20px to 170px from top of container
 const goalPositions = {
     'top-left': { 
-        goalkeeper: { bottom: '45%', left: '25%' },
-        ball: { bottom: '220px', left: '25%' }
+        goalkeeper: { bottom: '55%', left: '30%' },
+        ball: { bottom: '240px', left: '30%' }  // Top row of goal
     },
     'top-center': { 
-        goalkeeper: { bottom: '45%', left: '50%' },
-        ball: { bottom: '220px', left: '50%' }
+        goalkeeper: { bottom: '55%', left: '50%' },
+        ball: { bottom: '240px', left: '50%' }
     },
     'top-right': { 
-        goalkeeper: { bottom: '45%', left: '75%' },
-        ball: { bottom: '220px', left: '75%' }
+        goalkeeper: { bottom: '55%', left: '70%' },
+        ball: { bottom: '240px', left: '70%' }
     },
     'bottom-left': { 
-        goalkeeper: { bottom: '25%', left: '25%' },
-        ball: { bottom: '140px', left: '25%' }
+        goalkeeper: { bottom: '40%', left: '30%' },
+        ball: { bottom: '200px', left: '30%' }  // Bottom row of goal
     },
     'bottom-center': { 
-        goalkeeper: { bottom: '25%', left: '50%' },
-        ball: { bottom: '140px', left: '50%' }
+        goalkeeper: { bottom: '40%', left: '50%' },
+        ball: { bottom: '200px', left: '50%' }
     },
     'bottom-right': { 
-        goalkeeper: { bottom: '25%', left: '75%' },
-        ball: { bottom: '140px', left: '75%' }
+        goalkeeper: { bottom: '40%', left: '70%' },
+        ball: { bottom: '200px', left: '70%' }
     }
 };
 
@@ -82,19 +85,22 @@ function moveGoalkeeper(position) {
 }
 
 // Shoot ball to position
-function shootBall(target, isSaved) {
-    const pos = goalPositions[target].ball;
+function shootBall(target, isSaved, goalkeeperPosition) {
     ball.classList.add('shooting');
     
-    // Animate ball to target position
-    ball.style.bottom = pos.bottom;
-    ball.style.left = pos.left;
+    // If saved, ball goes to goalkeeper's position (caught)
+    // Otherwise, ball goes to the target position (goal)
+    const finalPosition = isSaved ? goalPositions[goalkeeperPosition].ball : goalPositions[target].ball;
     
-    // If saved, ball ends up in goalkeeper's hands
+    // Animate ball to final position
+    ball.style.bottom = finalPosition.bottom;
+    ball.style.left = finalPosition.left;
+    
+    // If saved, make ball smaller to show it's in goalkeeper's hands
     if (isSaved) {
         setTimeout(() => {
             ball.classList.add('in-hands');
-        }, 400);
+        }, 500);
     }
 }
 
@@ -133,7 +139,7 @@ function handleShoot(event) {
     // After shooter runs up and kicks (600ms), move ball and goalkeeper
     setTimeout(() => {
         moveGoalkeeper(goalkeeperPosition);
-        shootBall(target, isSaved);
+        shootBall(target, isSaved, goalkeeperPosition);
     }, 600);
     
     // Check result after all animations complete
