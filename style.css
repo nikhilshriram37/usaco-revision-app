@@ -189,6 +189,7 @@ h1 {
 }
 
 .goalkeeper-head {
+    position: relative;
     font-size: 2em;
     margin-bottom: -5px;
 }
@@ -220,6 +221,15 @@ h1 {
 
 .goalkeeper.diving .arm.right {
     transform: rotate(45deg) translateX(10px);
+}
+
+.goalkeeper.defeated .goalkeeper-head::after {
+    content: '😤';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .goalkeeper-legs {

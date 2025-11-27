@@ -66,7 +66,7 @@ function initializeGoalkeeper() {
     goalkeeper.style.bottom = '20%';
     goalkeeper.style.left = '50%';
     goalkeeper.style.transform = 'translateX(-50%)';
-    goalkeeper.classList.remove('diving');
+    goalkeeper.classList.remove('diving', 'defeated');
 }
 
 // Initialize ball position
@@ -294,14 +294,23 @@ function handleShoot(event) {
         moveGoalkeeper(goalkeeperPosition);
         shootBall(target, isSaved, goalkeeperPosition, shotPower);
         
-        // If goalkeeper guessed wrong, always attempt to redirect (even if too late)
-        if (target !== goalkeeperPosition) {
+        // If goalkeeper guessed wrong, only redirect if they can still save
+        if (target !== goalkeeperPosition && isSaved) {
             const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
             const timeToWrongSpot = (GOALKEEPER_BASE_SPEED * (initialDistance / 23)) * 1000;
             
             // After reaching wrong spot, redirect to correct position
             setTimeout(() => {
                 moveGoalkeeper(target);
+            }, timeToWrongSpot);
+        } else if (target !== goalkeeperPosition && !isSaved) {
+            // Ball already scored - goalkeeper shows defeat
+            const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
+            const timeToWrongSpot = (GOALKEEPER_BASE_SPEED * (initialDistance / 23)) * 1000;
+            
+            // After reaching wrong spot, show defeated reaction
+            setTimeout(() => {
+                goalkeeper.classList.add('defeated');
             }, timeToWrongSpot);
         }
     }, 600);
