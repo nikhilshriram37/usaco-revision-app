@@ -294,8 +294,8 @@ function handleShoot(event) {
         moveGoalkeeper(goalkeeperPosition);
         shootBall(target, isSaved, goalkeeperPosition, shotPower);
         
-        // If saved and goalkeeper guessed wrong, show redirection
-        if (isSaved && target !== goalkeeperPosition) {
+        // If goalkeeper guessed wrong, always attempt to redirect (even if too late)
+        if (target !== goalkeeperPosition) {
             const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
             const timeToWrongSpot = (GOALKEEPER_BASE_SPEED * (initialDistance / 23)) * 1000;
             
