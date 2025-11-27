@@ -168,6 +168,21 @@ function handleShoot(event) {
             if (targetSection) targetSection.classList.add('goal');
         }
         
+        // Check if game is over (first to 5 wins)
+        if (playerScore >= 5) {
+            messageEl.textContent = '🎉 YOU WIN! You scored 5 goals!';
+            messageEl.className = 'message goal';
+            shootButtons.forEach(btn => btn.disabled = true);
+            isAnimating = false;
+            return;
+        } else if (goalkeeperScore >= 5) {
+            messageEl.textContent = '😢 GAME OVER! Goalkeeper saved 5 shots!';
+            messageEl.className = 'message saved';
+            shootButtons.forEach(btn => btn.disabled = true);
+            isAnimating = false;
+            return;
+        }
+        
         // Reset after showing result
         setTimeout(() => {
             initializeGoalkeeper();
