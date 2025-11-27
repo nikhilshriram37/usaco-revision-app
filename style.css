@@ -314,7 +314,7 @@ h1 {
     bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 2;
+    z-index: 15;  /* Above ball (z-index: 10) so ball doesn't cover face */
 }
 
 .shooter-body {
