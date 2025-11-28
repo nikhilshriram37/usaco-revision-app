@@ -86,19 +86,25 @@ function getRandomPosition() {
 function getSmartGoalkeeperPosition(playerTarget) {
     const random = Math.random();
     
+    // 7% chance: Dive to same position as last shot (pattern recognition)
+    if (random < 0.07 && shotHistory.length > 0) {
+        const lastShot = shotHistory[shotHistory.length - 1];
+        return lastShot;
+    }
+    
     // 60% chance: Favor corner positions (hot zones where players often shoot)
-    if (random < 0.60) {
+    if (random < 0.67) { // 7% + 60% = 67%
         const cornerPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
         return cornerPositions[Math.floor(Math.random() * cornerPositions.length)];
     }
     
     // 20% chance: Favor center positions (easier to reach from center stance)
-    if (random < 0.80) { // 60% + 20% = 80%
+    if (random < 0.87) { // 67% + 20% = 87%
         const centerPositions = ['top-center', 'bottom-center'];
         return centerPositions[Math.floor(Math.random() * centerPositions.length)];
     }
     
-    // 20% chance: Completely random (unpredictable)
+    // 13% chance: Completely random (unpredictable)
     return getRandomPosition();
 }
 
