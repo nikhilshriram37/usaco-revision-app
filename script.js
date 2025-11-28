@@ -2,9 +2,6 @@
 let playerScore = 0;
 let goalkeeperScore = 0;
 let isAnimating = false;
-let currentPower = 0;
-let powerBarAnimating = false;
-let powerBarDirection = 1; // 1 for increasing, -1 for decreasing
 
 // DOM elements
 const playerScoreEl = document.getElementById('player-score');
@@ -17,12 +14,6 @@ const ball = document.getElementById('ball');
 const shooter = document.getElementById('shooter');
 const goalSections = document.querySelectorAll('.goal-section');
 const goalContainer = document.querySelector('.goal-container');
-const powerBarFill = document.getElementById('power-bar-fill');
-const powerValueEl = document.getElementById('power-value');
-
-// Constants
-const GOALKEEPER_BASE_SPEED = 0.3; // seconds to reach a position (faster = lower number)
-const POWER_BAR_SPEED = 2; // Speed of power bar animation (lower = faster)
 
 // Position mapping for goalkeeper and ball
 // Game area total: goal-container (300px) + field (200px) = 500px height
@@ -66,7 +57,7 @@ function initializeGoalkeeper() {
     goalkeeper.style.bottom = '20%';
     goalkeeper.style.left = '50%';
     goalkeeper.style.transform = 'translateX(-50%)';
-    goalkeeper.classList.remove('diving', 'defeated');
+    goalkeeper.classList.remove('diving');
 }
 
 // Initialize ball position
@@ -74,8 +65,7 @@ function initializeBall() {
     ball.style.bottom = '80px';  // In the field area (field is 200px, starts at bottom)
     ball.style.left = '50%';
     ball.style.transform = 'translateX(-50%)';
-    ball.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // Reset to default
-    ball.classList.remove('shooting', 'in-hands', 'goal-scored');
+    ball.classList.remove('shooting', 'in-hands');
 }
 
 // Initialize shooter position
@@ -91,120 +81,6 @@ function getRandomPosition() {
     return randomKey;
 }
 
-// Start power bar animation
-function startPowerBar() {
-    powerBarAnimating = true;
-    powerBarFill.classList.add('animating');
-    animatePowerBar();
-}
-
-// Stop power bar and return current power (0-100)
-function stopPowerBar() {
-    // Immediately stop animation and clear interval to prevent race condition
-    powerBarAnimating = false;
-    if (powerBarInterval) {
-        clearInterval(powerBarInterval);
-        powerBarInterval = null;
-    }
-    powerBarFill.classList.remove('animating');
-    
-    // Capture the current power value (already set by animatePowerBar)
-    const finalPower = currentPower;
-    
-    // Update display
-    let powerText = '';
-    if (finalPower < 33) {
-        powerText = `Weak (${Math.round(finalPower)}%)`;
-    } else if (finalPower < 66) {
-        powerText = `Medium (${Math.round(finalPower)}%)`;
-    } else {
-        powerText = `Strong (${Math.round(finalPower)}%)`;
-    }
-    powerValueEl.textContent = powerText;
-    
-    return finalPower;
-}
-
-// Animate power bar manually (smoother than CSS animation for stopping)
-let powerBarInterval;
-function animatePowerBar() {
-    currentPower = 0; // Use global currentPower variable
-    powerBarDirection = 1;
-    
-    powerBarInterval = setInterval(() => {
-        if (!powerBarAnimating) {
-            clearInterval(powerBarInterval);
-            return;
-        }
-        
-        // Check bounds BEFORE updating to prevent overshooting
-        if (currentPower >= 100) {
-            currentPower = 100;
-            powerBarDirection = -1;
-        } else if (currentPower <= 0) {
-            currentPower = 0;
-            powerBarDirection = 1;
-        }
-        
-        // Now update with the correct direction
-        currentPower += powerBarDirection * 4;
-        
-        // Clamp to valid range
-        if (currentPower > 100) currentPower = 100;
-        if (currentPower < 0) currentPower = 0;
-        
-        powerBarFill.style.width = currentPower + '%';
-    }, 15); // Faster interval (was 20ms)
-}
-
-// Calculate distance between two positions (as percentage)
-function calculateDistance(pos1Left, pos2Left) {
-    // Convert percentage strings to numbers
-    const left1 = parseFloat(pos1Left);
-    const left2 = parseFloat(pos2Left);
-    return Math.abs(left1 - left2);
-}
-
-// Determine if goalkeeper can save based on power and distance
-function canGoalkeeperSave(shotPower, targetPosition, goalkeeperPosition) {
-    // Shot speed based on power (higher power = faster shot = less time for keeper)
-    // Weak shots: 0.8s, Medium: 0.6s, Strong: 0.4s
-    const shotSpeed = 0.8 - (shotPower / 100) * 0.4;
-    
-    // Goalkeeper's fixed dive speed (0.4s from CSS)
-    const keeperDiveSpeed = 0.4;
-    
-    if (targetPosition === goalkeeperPosition) {
-        // Goalkeeper guessed correctly - they'll be there in time
-        return true;
-    }
-    
-    // Goalkeeper guessed wrong - can they redirect?
-    // Step 1: Calculate time to reach their initial (wrong) position
-    const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
-    const timeToWrongSpot = GOALKEEPER_BASE_SPEED * (initialDistance / 23);
-    
-    // Step 2: Calculate time remaining after reaching wrong spot
-    const timeRemaining = shotSpeed - timeToWrongSpot;
-    
-    // Step 3: If no time remaining, ball already entered goal
-    if (timeRemaining <= 0) {
-        return false; // Ball entered goal before keeper reached wrong spot
-    }
-    
-    // Step 4: Calculate distance from wrong spot to actual target
-    const redirectDistance = calculateDistance(
-        goalPositions[goalkeeperPosition].goalkeeper.left,
-        goalPositions[targetPosition].goalkeeper.left
-    );
-    
-    // Step 5: Calculate time needed to redirect to correct position
-    const timeToRedirect = GOALKEEPER_BASE_SPEED * (redirectDistance / 23);
-    
-    // Step 6: Goalkeeper can save if they can redirect in time
-    return timeToRedirect <= timeRemaining;
-}
-
 // Move goalkeeper to dive position
 function moveGoalkeeper(position) {
     const pos = goalPositions[position].goalkeeper;
@@ -215,19 +91,12 @@ function moveGoalkeeper(position) {
 }
 
 // Shoot ball to position
-function shootBall(target, isSaved, goalkeeperPosition, shotPower) {
+function shootBall(target, isSaved, goalkeeperPosition) {
     ball.classList.add('shooting');
     
-    // Calculate ball speed based on power
-    // Weak shots: 0.8s, Medium: 0.6s, Strong: 0.4s
-    const ballSpeed = 0.8 - (shotPower / 100) * 0.4;
-    
-    // Apply transition duration based on power
-    ball.style.transition = `all ${ballSpeed}s cubic-bezier(0.33, 0.01, 0.12, 1.01)`;
-    
-    // Ball always goes to the target position (where player shot)
-    // If saved, goalkeeper will be there to catch it (either guessed right or redirected)
-    const finalPosition = goalPositions[target].ball;
+    // If saved, ball goes to goalkeeper's position (caught)
+    // Otherwise, ball goes to the target position (goal)
+    const finalPosition = isSaved ? goalPositions[goalkeeperPosition].ball : goalPositions[target].ball;
     
     // Animate ball to final position
     ball.style.bottom = finalPosition.bottom;
@@ -237,7 +106,7 @@ function shootBall(target, isSaved, goalkeeperPosition, shotPower) {
     if (isSaved) {
         setTimeout(() => {
             ball.classList.add('in-hands');
-        }, ballSpeed * 1000 * 0.8); // Slightly before ball arrives
+        }, 500);
     }
 }
 
@@ -257,30 +126,10 @@ function animateShooterKick() {
 function handleShoot(event) {
     if (isAnimating) return;
     
-    const target = event.target.dataset.target;
-    
-    // First click: start power bar
-    if (!powerBarAnimating) {
-        startPowerBar();
-        powerValueEl.textContent = 'Click again to shoot!';
-        return;
-    }
-    
-    // Second click: stop power bar and shoot
-    const shotPower = stopPowerBar();
     isAnimating = true;
-    
+    const target = event.target.dataset.target;
     const goalkeeperPosition = getRandomPosition();
-    
-    // Determine if it's a save based on power and distance
-    let isSaved = false;
-    if (target === goalkeeperPosition) {
-        // Goalkeeper guessed right - can they reach it in time?
-        isSaved = canGoalkeeperSave(shotPower, target, goalkeeperPosition);
-    } else {
-        // Goalkeeper guessed wrong - can they still reach it?
-        isSaved = canGoalkeeperSave(shotPower, target, goalkeeperPosition);
-    }
+    const isSaved = target === goalkeeperPosition;
     
     // Disable all buttons
     shootButtons.forEach(btn => btn.disabled = true);
@@ -293,38 +142,13 @@ function handleShoot(event) {
     // Start shooter animation
     animateShooterKick();
     
-    // Calculate ball speed for timing
-    const ballSpeed = 0.8 - (shotPower / 100) * 0.4;
-    
     // After shooter runs up and kicks (600ms), move ball and goalkeeper
     setTimeout(() => {
-        // Goalkeeper dives to their chosen position
         moveGoalkeeper(goalkeeperPosition);
-        shootBall(target, isSaved, goalkeeperPosition, shotPower);
-        
-        // If goalkeeper guessed wrong, only redirect if they can still save
-        if (target !== goalkeeperPosition && isSaved) {
-            const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
-            const timeToWrongSpot = (GOALKEEPER_BASE_SPEED * (initialDistance / 23)) * 1000;
-            
-            // After reaching wrong spot, redirect to correct position
-            setTimeout(() => {
-                moveGoalkeeper(target);
-            }, timeToWrongSpot);
-        } else if (target !== goalkeeperPosition && !isSaved) {
-            // Ball already scored - goalkeeper shows defeat
-            const initialDistance = calculateDistance('50%', goalPositions[goalkeeperPosition].goalkeeper.left);
-            const timeToWrongSpot = (GOALKEEPER_BASE_SPEED * (initialDistance / 23)) * 1000;
-            
-            // After reaching wrong spot, show defeated reaction
-            setTimeout(() => {
-                goalkeeper.classList.add('defeated');
-            }, timeToWrongSpot);
-        }
+        shootBall(target, isSaved, goalkeeperPosition);
     }, 600);
     
-    // Check result after all animations complete (600ms kick + ball travel time)
-    const resultDelay = 600 + (ballSpeed * 1000);
+    // Check result after all animations complete
     setTimeout(() => {
         const targetSection = document.querySelector(`.goal-section[data-position="${target}"]`);
         
@@ -341,22 +165,14 @@ function handleShoot(event) {
             playerScoreEl.textContent = playerScore;
             messageEl.textContent = '⚽ GOAL! You scored!';
             messageEl.className = 'message goal';
-            ball.classList.add('goal-scored');
             if (targetSection) targetSection.classList.add('goal');
         }
         
         // Check if game is over (first to 5 wins)
-        if (playerScore >= 5) {
-            messageEl.textContent = '🎉 YOU WIN! You scored 5 goals!';
-            messageEl.className = 'message goal';
-            shootButtons.forEach(btn => btn.disabled = true);
-            isAnimating = false;
-            return;
-        } else if (goalkeeperScore >= 5) {
-            messageEl.textContent = '😢 GAME OVER! Goalkeeper saved 5 shots!';
-            messageEl.className = 'message saved';
-            shootButtons.forEach(btn => btn.disabled = true);
-            isAnimating = false;
+        if (playerScore === 5 || goalkeeperScore === 5) {
+            setTimeout(() => {
+                endGame(playerScore === 5 ? 'player' : 'goalkeeper');
+            }, 1500);
             return;
         }
         
@@ -365,8 +181,6 @@ function handleShoot(event) {
             initializeGoalkeeper();
             initializeBall();
             initializeShooter();
-            powerValueEl.textContent = 'Click to shoot!';
-            powerBarFill.style.width = '0%';
             shootButtons.forEach(btn => btn.disabled = false);
             isAnimating = false;
             
@@ -377,7 +191,23 @@ function handleShoot(event) {
                 }
             }, 500);
         }, 2000);
-    }, resultDelay);
+    }, 1300);
+}
+
+// End game when someone reaches 5 points
+function endGame(winner) {
+    isAnimating = true;
+    
+    if (winner === 'player') {
+        messageEl.textContent = '🎉 YOU WIN! You scored 5 goals!';
+        messageEl.className = 'message goal';
+    } else {
+        messageEl.textContent = '😞 GOALKEEPER WINS! 5 saves!';
+        messageEl.className = 'message saved';
+    }
+    
+    // Keep buttons disabled - player must reset to play again
+    shootButtons.forEach(btn => btn.disabled = true);
 }
 
 // Reset game
@@ -396,14 +226,6 @@ function resetGame() {
     initializeGoalkeeper();
     initializeBall();
     initializeShooter();
-    
-    // Reset power bar
-    powerBarAnimating = false;
-    if (powerBarInterval) clearInterval(powerBarInterval);
-    powerBarFill.classList.remove('animating');
-    powerBarFill.style.width = '0%';
-    powerValueEl.textContent = 'Click to shoot!';
-    currentPower = 0;
     
     shootButtons.forEach(btn => btn.disabled = false);
     isAnimating = false;
