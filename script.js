@@ -2,6 +2,7 @@
 let playerScore = 0;
 let goalkeeperScore = 0;
 let isAnimating = false;
+let shotHistory = []; // Track last 3 shots for goalkeeper AI
 
 // DOM elements
 const playerScoreEl = document.getElementById('player-score');
@@ -74,11 +75,40 @@ function initializeShooter() {
     shooter.classList.remove('running', 'kicking');
 }
 
-// Get random position for goalkeeper
+// Get random position for goalkeeper (fallback)
 function getRandomPosition() {
     const positionKeys = Object.keys(goalPositions);
     const randomKey = positionKeys[Math.floor(Math.random() * positionKeys.length)];
     return randomKey;
+}
+
+// Smart goalkeeper AI with pattern detection and strategic positioning
+function getSmartGoalkeeperPosition(playerTarget) {
+    const random = Math.random();
+    
+    // 20% chance: Pattern detection - avoid recently shot positions
+    if (random < 0.20 && shotHistory.length >= 2) {
+        const availablePositions = Object.keys(goalPositions)
+            .filter(pos => !shotHistory.includes(pos));
+        if (availablePositions.length > 0) {
+            return availablePositions[Math.floor(Math.random() * availablePositions.length)];
+        }
+    }
+    
+    // 30% chance: Favor center positions (easier to reach from center stance)
+    if (random < 0.50) { // 20% + 30% = 50%
+        const centerPositions = ['top-center', 'bottom-center'];
+        return centerPositions[Math.floor(Math.random() * centerPositions.length)];
+    }
+    
+    // 40% chance: Favor corner positions (hot zones where players often shoot)
+    if (random < 0.90) { // 50% + 40% = 90%
+        const cornerPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+        return cornerPositions[Math.floor(Math.random() * cornerPositions.length)];
+    }
+    
+    // 10% chance: Completely random (unpredictable)
+    return getRandomPosition();
 }
 
 // Move goalkeeper to dive position
@@ -128,8 +158,16 @@ function handleShoot(event) {
     
     isAnimating = true;
     const target = event.target.dataset.target;
-    const goalkeeperPosition = getRandomPosition();
+    
+    // Use smart goalkeeper AI instead of random
+    const goalkeeperPosition = getSmartGoalkeeperPosition(target);
     const isSaved = target === goalkeeperPosition;
+    
+    // Track shot history for pattern detection
+    shotHistory.push(target);
+    if (shotHistory.length > 3) {
+        shotHistory.shift(); // Keep only last 3 shots
+    }
     
     // Disable all buttons
     shootButtons.forEach(btn => btn.disabled = true);
@@ -214,6 +252,7 @@ function endGame(winner) {
 function resetGame() {
     playerScore = 0;
     goalkeeperScore = 0;
+    shotHistory = []; // Clear shot history for fresh start
     playerScoreEl.textContent = '0';
     goalkeeperScoreEl.textContent = '0';
     messageEl.textContent = '';
