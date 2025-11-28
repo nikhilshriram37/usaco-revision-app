@@ -82,32 +82,23 @@ function getRandomPosition() {
     return randomKey;
 }
 
-// Smart goalkeeper AI with pattern detection and strategic positioning
+// Smart goalkeeper AI with strategic positioning
 function getSmartGoalkeeperPosition(playerTarget) {
     const random = Math.random();
     
-    // 20% chance: Pattern detection - avoid recently shot positions
-    if (random < 0.20 && shotHistory.length >= 2) {
-        const availablePositions = Object.keys(goalPositions)
-            .filter(pos => !shotHistory.includes(pos));
-        if (availablePositions.length > 0) {
-            return availablePositions[Math.floor(Math.random() * availablePositions.length)];
-        }
-    }
-    
-    // 30% chance: Favor center positions (easier to reach from center stance)
-    if (random < 0.50) { // 20% + 30% = 50%
-        const centerPositions = ['top-center', 'bottom-center'];
-        return centerPositions[Math.floor(Math.random() * centerPositions.length)];
-    }
-    
-    // 40% chance: Favor corner positions (hot zones where players often shoot)
-    if (random < 0.90) { // 50% + 40% = 90%
+    // 60% chance: Favor corner positions (hot zones where players often shoot)
+    if (random < 0.60) {
         const cornerPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
         return cornerPositions[Math.floor(Math.random() * cornerPositions.length)];
     }
     
-    // 10% chance: Completely random (unpredictable)
+    // 20% chance: Favor center positions (easier to reach from center stance)
+    if (random < 0.80) { // 60% + 20% = 80%
+        const centerPositions = ['top-center', 'bottom-center'];
+        return centerPositions[Math.floor(Math.random() * centerPositions.length)];
+    }
+    
+    // 20% chance: Completely random (unpredictable)
     return getRandomPosition();
 }
 
