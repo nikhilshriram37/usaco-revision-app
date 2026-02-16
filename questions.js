@@ -806,6 +806,428 @@ const questionBank = [
         explanation: "Binary search on max distance. For each candidate distance, greedily check if K barns can cover all cows within that distance. This is a classic 'binary search on answer' problem.",
         algorithm: "Binary Search on Answer",
         estimated_time_seconds: 90
+    },
+
+    // NEW QUESTIONS BASED ON REAL USACO BRONZE PATTERNS (51-75)
+    
+    // Simulation-based (inspired by Cannonball, common Bronze pattern)
+    {
+        id: 51,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "A ball bounces on a line. It starts at position S with power P, moving right. When it hits a target at position X, it bounces back with power+1. How do you track when targets break?",
+        choices: [
+            "Use a set to mark broken targets, simulate position updates with direction tracking",
+            "Sort targets and use binary search",
+            "Use dynamic programming on positions",
+            "Recursively try all paths"
+        ],
+        correct_answer: "Use a set to mark broken targets, simulate position updates with direction tracking",
+        explanation: "Classic Bronze simulation. Track current position, direction, and power. Update position by direction*power. Use a set/map to track which targets are hit. This matches the Cannonball problem pattern.",
+        algorithm: "Simulation",
+        estimated_time_seconds: 80
+    },
+    {
+        id: 52,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have a string where each position has a type. A substring is 'valid' if at least 2 of any 3 consecutive elements are the same type. How do you find all valid types?",
+        choices: [
+            "Check every window of size 3, track types that appear ≥2 times in any window",
+            "Count frequency of each type globally",
+            "Use dynamic programming",
+            "Sort the string first"
+        ],
+        correct_answer: "Check every window of size 3, track types that appear ≥2 times in any window",
+        explanation: "Inspired by Majority Opinion (2024 Jan Bronze). Slide a window of size 3, check if any type appears ≥2 times. Use a set to collect valid types. O(N) simulation.",
+        algorithm: "Sliding Window",
+        estimated_time_seconds: 75
+    },
+    {
+        id: 53,
+        difficulty: "easy",
+        type: "multiple_choice",
+        question: "Bessie walks in a straight line. She starts at 0. Given moves 'F' (forward +1) and 'B' (backward -1), what's her final position after 'FFBFB'?",
+        choices: [
+            "Position 1",
+            "Position 2",
+            "Position 0",
+            "Position 3"
+        ],
+        correct_answer: "Position 1",
+        explanation: "Direct simulation: F(1), F(2), B(1), F(2), B(1). Final position = 1. Count Fs minus Bs: 3-2=1. This is a common Bronze simulation pattern.",
+        algorithm: "Simulation",
+        estimated_time_seconds: 50
+    },
+    {
+        id: 54,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "N cows stand in a line facing 'L' or 'R'. A cow is 'happy' if the adjacent cow in the direction it faces also faces toward it. How do you count happy cows?",
+        choices: [
+            "For each cow, check if the cow it faces also faces back toward it",
+            "Count all 'L' and 'R' cows separately",
+            "Use dynamic programming",
+            "Sort cows by direction"
+        ],
+        correct_answer: "For each cow, check if the cow it faces also faces back toward it",
+        explanation: "For cow i facing 'R': check if cow i+1 faces 'L'. For cow i facing 'L': check if cow i-1 faces 'R'. This is direct simulation with careful boundary checking.",
+        algorithm: "Simulation",
+        estimated_time_seconds: 75
+    },
+    
+    // Complete Search patterns
+    {
+        id: 55,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have N ≤ 20 items. You need to check if any subset sums to target T. What's the Bronze approach?",
+        choices: [
+            "Try all 2^N subsets using bitmask or recursion",
+            "Use greedy selection",
+            "Sort and use two pointers",
+            "Dynamic programming only"
+        ],
+        correct_answer: "Try all 2^N subsets using bitmask or recursion",
+        explanation: "With N ≤ 20, complete search is feasible (2^20 ≈ 1M). Generate all subsets, check each sum. This is a classic Bronze complete search pattern.",
+        algorithm: "Complete Search",
+        estimated_time_seconds: 80
+    },
+    {
+        id: 56,
+        difficulty: "hard",
+        type: "multiple_choice",
+        question: "Given N ≤ 8 cows, you need to arrange them in a line such that no two adjacent cows have IDs differing by 1. How do you solve this?",
+        choices: [
+            "Generate all N! permutations, check each for the constraint",
+            "Use greedy sorting",
+            "Dynamic programming on subsets",
+            "Binary search"
+        ],
+        correct_answer: "Generate all N! permutations, check each for the constraint",
+        explanation: "N ≤ 8 means 8! = 40,320 permutations, manageable for Bronze. Try all arrangements, validate each. This is complete search with permutation generation.",
+        algorithm: "Complete Search",
+        estimated_time_seconds: 85
+    },
+    {
+        id: 57,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have 3 switches that control 5 lights in different patterns. You need to find if you can turn on exactly K lights. N ≤ 10 switches. What's the approach?",
+        choices: [
+            "Try all 2^N combinations of switch states, count lights for each",
+            "Use greedy selection of switches",
+            "Dynamic programming on light states",
+            "Sort switches by number of lights controlled"
+        ],
+        correct_answer: "Try all 2^N combinations of switch states, count lights for each",
+        explanation: "With N ≤ 10, try all 2^10 = 1024 switch combinations. For each, simulate which lights turn on. This is Bronze complete search.",
+        algorithm: "Complete Search",
+        estimated_time_seconds: 80
+    },
+    
+    // Greedy patterns from Bronze
+    {
+        id: 58,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have N meetings with [start, end] times. You want to attend the maximum number without overlap. What's the greedy strategy?",
+        choices: [
+            "Sort by end time, greedily select earliest-ending non-overlapping meetings",
+            "Sort by start time and select",
+            "Sort by duration and select shortest",
+            "Use dynamic programming"
+        ],
+        correct_answer: "Sort by end time, greedily select earliest-ending non-overlapping meetings",
+        explanation: "Classic interval scheduling greedy. Sort by end time, pick meetings that don't overlap with the last selected. This is optimal and appears in Bronze.",
+        algorithm: "Greedy",
+        estimated_time_seconds: 75
+    },
+    {
+        id: 59,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "Farmer John has N haybales at positions on a line. He wants to place K barns to minimize the maximum distance any haybale is from a barn. What technique works?",
+        choices: [
+            "Binary search on max distance, greedily check if K barns can cover all haybales",
+            "Place barns at haybale positions greedily",
+            "Use dynamic programming",
+            "Sort and divide into K equal segments"
+        ],
+        correct_answer: "Binary search on max distance, greedily check if K barns can cover all haybales",
+        explanation: "Binary search on answer: for each distance D, greedily place barns to cover haybales within D. Check if K barns suffice. This pattern appears in harder Bronze problems.",
+        algorithm: "Binary Search on Answer",
+        estimated_time_seconds: 85
+    },
+    {
+        id: 60,
+        difficulty: "easy",
+        type: "multiple_choice",
+        question: "You have coins [1, 5, 10, 25]. To make 30 cents using fewest coins, what's the greedy approach?",
+        choices: [
+            "Use largest coin that fits, repeat: 25 + 5 = 2 coins",
+            "Use smallest coins first",
+            "Try all combinations",
+            "Use dynamic programming"
+        ],
+        correct_answer: "Use largest coin that fits, repeat: 25 + 5 = 2 coins",
+        explanation: "Greedy works for standard US coins. Take largest coin ≤ remaining amount. 30: take 25 (left 5), take 5 (left 0). Total 2 coins. This is a classic greedy pattern.",
+        algorithm: "Greedy",
+        estimated_time_seconds: 60
+    },
+    
+    // Ad Hoc / Pattern Recognition
+    {
+        id: 61,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "A sequence alternates: 1, -1, 2, -2, 3, -3, ... What's the sum of the first 100 terms?",
+        choices: [
+            "0 (pairs cancel: 1-1=0, 2-2=0, ...)",
+            "50",
+            "100",
+            "-50"
+        ],
+        correct_answer: "0 (pairs cancel: 1-1=0, 2-2=0, ...)",
+        explanation: "Pattern recognition: pairs (1,-1), (2,-2), ... each sum to 0. 100 terms = 50 pairs, sum = 0. This is ad hoc reasoning common in Bronze.",
+        algorithm: "Ad Hoc",
+        estimated_time_seconds: 65
+    },
+    {
+        id: 62,
+        difficulty: "hard",
+        type: "multiple_choice",
+        question: "Bessie has a string of 'G' and 'H'. She can swap adjacent different letters. What's the minimum swaps to group all 'G's together?",
+        choices: [
+            "Try each position for the 'G' block, count swaps needed (inversions)",
+            "Sort the string",
+            "Use dynamic programming",
+            "Greedy: always swap leftmost G with H"
+        ],
+        correct_answer: "Try each position for the 'G' block, count swaps needed (inversions)",
+        explanation: "For each possible position of the 'G' block, count how many 'H's are in the way (inversions). Take minimum. This is ad hoc problem solving for Bronze.",
+        algorithm: "Ad Hoc",
+        estimated_time_seconds: 85
+    },
+    {
+        id: 63,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have a grid where each cell is 'L' (left), 'R' (right), 'U' (up), or 'D' (down). Starting at (0,0), you follow directions. How do you detect if you loop forever?",
+        choices: [
+            "Track visited (position, step_count), if you revisit same position, you're in a loop",
+            "Run for N steps and check",
+            "Use DFS",
+            "Count total L/R and U/D moves"
+        ],
+        correct_answer: "Track visited (position, step_count), if you revisit same position, you're in a loop",
+        explanation: "If you visit the same cell twice, you'll loop forever. Use a set to track visited positions. If you revisit or go out of bounds, stop. This is simulation with cycle detection.",
+        algorithm: "Simulation",
+        estimated_time_seconds: 80
+    },
+    
+    // Rectangle Geometry (Bronze pattern)
+    {
+        id: 64,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have N ≤ 100 rectangles (axis-aligned). How do you find the total area covered (counting overlaps once)?",
+        choices: [
+            "For small N, use coordinate compression or sweep line",
+            "Sum all rectangle areas",
+            "Use dynamic programming",
+            "Binary search"
+        ],
+        correct_answer: "For small N, use coordinate compression or sweep line",
+        explanation: "Bronze approach: coordinate compression (discretize coordinates), mark covered cells in a grid, count. Or use sweep line with events. This is a harder Bronze pattern.",
+        algorithm: "Rectangle Geometry",
+        estimated_time_seconds: 85
+    },
+    {
+        id: 65,
+        difficulty: "easy",
+        type: "multiple_choice",
+        question: "Two rectangles: R1 = (0,0,4,3) and R2 = (2,1,6,4). Do they overlap?",
+        choices: [
+            "Yes, they overlap in region (2,1,4,3)",
+            "No, they don't overlap",
+            "They only touch at edges",
+            "Cannot determine"
+        ],
+        correct_answer: "Yes, they overlap in region (2,1,4,3)",
+        explanation: "Rectangles overlap if: x1_max > x2_min AND x2_max > x1_min AND y1_max > y2_min AND y2_max > y1_min. Here: 4>2, 6>0, 3>1, 4>0 all true. Overlap exists.",
+        algorithm: "Rectangle Geometry",
+        estimated_time_seconds: 70
+    },
+    
+    // Sorting-based patterns
+    {
+        id: 66,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "N cows arrive at times [3,1,4,2]. Each takes 2 minutes to milk. If processed in arrival order, when does the last cow finish?",
+        choices: [
+            "Sort by arrival: [1,2,3,4]. Process: 1→3, 2→5, 3→7, 4→9. Answer: 9",
+            "Answer: 8",
+            "Answer: 10",
+            "Answer: 11"
+        ],
+        correct_answer: "Sort by arrival: [1,2,3,4]. Process: 1→3, 2→5, 3→7, 4→9. Answer: 9",
+        explanation: "Sort by arrival time. Process each cow: start = max(arrival, previous_finish), finish = start + duration. Track finish times. This is simulation with sorting.",
+        algorithm: "Sorting + Simulation",
+        estimated_time_seconds: 80
+    },
+    {
+        id: 67,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have pairs (value, weight). You want to maximize value while keeping total weight ≤ W. N ≤ 20. What's the Bronze approach?",
+        choices: [
+            "Try all 2^N subsets, check weight constraint, maximize value",
+            "Sort by value/weight ratio, greedy select",
+            "Dynamic programming only",
+            "Binary search"
+        ],
+        correct_answer: "Try all 2^N subsets, check weight constraint, maximize value",
+        explanation: "This is 0/1 knapsack. For Bronze with N ≤ 20, complete search works: try all subsets, check if weight ≤ W, track max value. DP also works but complete search is simpler.",
+        algorithm: "Complete Search",
+        estimated_time_seconds: 80
+    },
+    
+    // Frequency/Counting patterns
+    {
+        id: 68,
+        difficulty: "easy",
+        type: "multiple_choice",
+        question: "You have a string 'AABBCCABC'. What's the most frequent character?",
+        choices: [
+            "A, B, and C all appear 3 times (tie)",
+            "A appears most",
+            "B appears most",
+            "C appears most"
+        ],
+        correct_answer: "A, B, and C all appear 3 times (tie)",
+        explanation: "Count frequencies: A=3, B=3, C=3. All tied. Use a frequency array or map to count, then find maximum. This is basic frequency counting.",
+        algorithm: "Frequency Counting",
+        estimated_time_seconds: 55
+    },
+    {
+        id: 69,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "Given an array, find the number of distinct elements. N ≤ 10^5. What's the best approach?",
+        choices: [
+            "Insert all elements into a set, return set size",
+            "Sort and count consecutive duplicates",
+            "Use nested loops to compare all pairs",
+            "Both A and B work efficiently"
+        ],
+        correct_answer: "Both A and B work efficiently",
+        explanation: "Set insertion: O(N log N) or O(N) with hash set. Sorting then counting: O(N log N). Both work. Set is simpler. Nested loops are O(N²), too slow.",
+        algorithm: "Sets",
+        estimated_time_seconds: 70
+    },
+    
+    // Two pointers / Sliding window
+    {
+        id: 70,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "Find the longest subarray where all elements are ≤ K. Array: [1,3,2,5,1,2], K=3. What's the length?",
+        choices: [
+            "4 (subarray [1,3,2,1] or [3,2,1,2])",
+            "3",
+            "5",
+            "2"
+        ],
+        correct_answer: "4 (subarray [1,3,2,1] or [3,2,1,2])",
+        explanation: "Use sliding window: expand right while elements ≤ K, shrink left when > K. Track max length. Subarrays [1,3,2] (length 3), then [3,2,1,2] (length 4). Answer: 4.",
+        algorithm: "Sliding Window",
+        estimated_time_seconds: 75
+    },
+    {
+        id: 71,
+        difficulty: "hard",
+        type: "multiple_choice",
+        question: "Given a sorted array, find if there exist two elements that sum to target T. N ≤ 10^5. What's the most efficient Bronze approach?",
+        choices: [
+            "Two pointers: left=0, right=N-1, move based on sum comparison",
+            "Try all pairs with nested loops O(N²)",
+            "Binary search for each element",
+            "Use a hash set"
+        ],
+        correct_answer: "Two pointers: left=0, right=N-1, move based on sum comparison",
+        explanation: "Since sorted, use two pointers. If sum < T, move left up. If sum > T, move right down. O(N). Hash set also works but two pointers is classic for sorted arrays.",
+        algorithm: "Two Pointers",
+        estimated_time_seconds: 75
+    },
+    
+    // Graph basics (Bronze level)
+    {
+        id: 72,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "You have N ≤ 100 nodes. Some pairs are connected. How do you check if node A can reach node B?",
+        choices: [
+            "Use BFS or DFS from A, check if B is visited",
+            "Check if they're directly connected",
+            "Use binary search",
+            "Sort the nodes"
+        ],
+        correct_answer: "Use BFS or DFS from A, check if B is visited",
+        explanation: "Graph traversal: run BFS or DFS starting from A. If you visit B, they're connected. This is basic graph connectivity, appearing in some Bronze problems.",
+        algorithm: "Graph Traversal",
+        estimated_time_seconds: 75
+    },
+    {
+        id: 73,
+        difficulty: "hard",
+        type: "multiple_choice",
+        question: "A grid has '.' (grass) and '#' (fence). Starting at (0,0), can you reach (N-1,M-1) moving only up/down/left/right on grass? N,M ≤ 50.",
+        choices: [
+            "Use BFS or DFS to explore reachable grass cells from start",
+            "Check if there's a direct path",
+            "Use dynamic programming",
+            "Count grass cells"
+        ],
+        correct_answer: "Use BFS or DFS to explore reachable grass cells from start",
+        explanation: "Graph traversal on grid. Treat grass cells as nodes. BFS/DFS from (0,0), check if (N-1,M-1) is reachable. This is flood fill, common in Bronze.",
+        algorithm: "Graph Traversal",
+        estimated_time_seconds: 80
+    },
+    
+    // Casework / Logic
+    {
+        id: 74,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "Bessie has 3 types of hay: A, B, C. She eats in pattern: A→B→C→A→B→C... On day 15, what does she eat?",
+        choices: [
+            "C (15 mod 3 = 0, which is position 3 = C)",
+            "A",
+            "B",
+            "Cannot determine"
+        ],
+        correct_answer: "C (15 mod 3 = 0, which is position 3 = C)",
+        explanation: "Pattern repeats every 3 days. Day 15: 15 mod 3 = 0. Map: 1→A, 2→B, 0→C (or use 1-indexed: (15-1)%3+1 = 3 = C). This is pattern recognition with modulo.",
+        algorithm: "Ad Hoc",
+        estimated_time_seconds: 65
+    },
+    {
+        id: 75,
+        difficulty: "medium",
+        type: "multiple_choice",
+        question: "A number is 'special' if it's divisible by 3 or 5 but not both. How many special numbers are in [1, 30]?",
+        choices: [
+            "12 (divisible by 3 only: 8 numbers, by 5 only: 4 numbers)",
+            "10",
+            "14",
+            "16"
+        ],
+        correct_answer: "12 (divisible by 3 only: 8 numbers, by 5 only: 4 numbers)",
+        explanation: "Div by 3: 10 numbers. Div by 5: 6 numbers. Div by both (15): 2 numbers. Special = (10-2) + (6-2) = 8 + 4 = 12. Use inclusion-exclusion principle.",
+        algorithm: "Ad Hoc",
+        estimated_time_seconds: 70
     }
 ];
 
