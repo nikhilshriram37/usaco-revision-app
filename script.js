@@ -20,7 +20,6 @@ const questionNumber = document.getElementById('question-number');
 const timerEl = document.getElementById('timer');
 const difficultyBadge = document.getElementById('difficulty-badge');
 const questionText = document.getElementById('question-text');
-const algorithmTag = document.getElementById('algorithm-tag');
 const choicesContainer = document.getElementById('choices-container');
 const feedbackContainer = document.getElementById('feedback-container');
 const feedbackHeader = document.getElementById('feedback-header');
@@ -89,9 +88,6 @@ function displayQuestion() {
     
     // Update question text
     questionText.textContent = question.question;
-    
-    // Update algorithm tag
-    algorithmTag.textContent = question.algorithm;
     
     // Update choices
     const choiceBtns = choicesContainer.querySelectorAll('.choice-btn');
