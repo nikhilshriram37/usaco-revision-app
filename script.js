@@ -1,280 +1,249 @@
-// Game state
-let playerScore = 0;
-let goalkeeperScore = 0;
-let isAnimating = false;
-let shotHistory = []; // Track last 3 shots for goalkeeper AI
+// Quiz State
+let currentQuiz = [];
+let currentQuestionIndex = 0;
+let userAnswers = [];
+let startTime = null;
+let questionStartTime = null;
+let timerInterval = null;
 
-// DOM elements
-const playerScoreEl = document.getElementById('player-score');
-const goalkeeperScoreEl = document.getElementById('goalkeeper-score');
-const messageEl = document.getElementById('message');
-const shootButtons = document.querySelectorAll('.shoot-btn');
-const resetBtn = document.getElementById('reset-btn');
-const goalkeeper = document.getElementById('goalkeeper');
-const ball = document.getElementById('ball');
-const shooter = document.getElementById('shooter');
-const goalSections = document.querySelectorAll('.goal-section');
-const goalContainer = document.querySelector('.goal-container');
+// DOM Elements
+const startScreen = document.getElementById('start-screen');
+const quizScreen = document.getElementById('quiz-screen');
+const resultsScreen = document.getElementById('results-screen');
+const startBtn = document.getElementById('start-btn');
+const nextBtn = document.getElementById('next-btn');
+const retakeBtn = document.getElementById('retake-btn');
+const reviewBtn = document.getElementById('review-btn');
 
-// Position mapping for goalkeeper and ball
-// Game area total: goal-container (300px) + field (200px) = 500px height
-// Goal container: 0-300px from bottom (200-500px from bottom of game-area)
-// Goal frame: starts at 280px from bottom, height 150px, ends at 430px from bottom
-// Goal net grid (3x2): 
-//   - Top row centers: ~405px from bottom
-//   - Bottom row centers: ~318px from bottom
-//   - Left column: ~27% from left
-//   - Center column: 50% from left  
-//   - Right column: ~73% from left
-const goalPositions = {
-    'top-left': { 
-        goalkeeper: { bottom: '58%', left: '27%' },
-        ball: { bottom: '405px', left: '27%' }  // Top-left grid cell
-    },
-    'top-center': { 
-        goalkeeper: { bottom: '58%', left: '50%' },
-        ball: { bottom: '405px', left: '50%' }  // Top-center grid cell
-    },
-    'top-right': { 
-        goalkeeper: { bottom: '58%', left: '73%' },
-        ball: { bottom: '405px', left: '73%' }  // Top-right grid cell
-    },
-    'bottom-left': { 
-        goalkeeper: { bottom: '45%', left: '27%' },
-        ball: { bottom: '318px', left: '27%' }  // Bottom-left grid cell
-    },
-    'bottom-center': { 
-        goalkeeper: { bottom: '45%', left: '50%' },
-        ball: { bottom: '318px', left: '50%' }  // Bottom-center grid cell
-    },
-    'bottom-right': { 
-        goalkeeper: { bottom: '45%', left: '73%' },
-        ball: { bottom: '318px', left: '73%' }  // Bottom-right grid cell
-    }
-};
+const progressFill = document.getElementById('progress-fill');
+const questionNumber = document.getElementById('question-number');
+const timerEl = document.getElementById('timer');
+const difficultyBadge = document.getElementById('difficulty-badge');
+const questionText = document.getElementById('question-text');
+const algorithmTag = document.getElementById('algorithm-tag');
+const choicesContainer = document.getElementById('choices-container');
+const feedbackContainer = document.getElementById('feedback-container');
+const feedbackHeader = document.getElementById('feedback-header');
+const feedbackExplanation = document.getElementById('feedback-explanation');
 
-// Initialize goalkeeper position
-function initializeGoalkeeper() {
-    goalkeeper.style.bottom = '20%';
-    goalkeeper.style.left = '50%';
-    goalkeeper.style.transform = 'translateX(-50%)';
-    goalkeeper.classList.remove('diving');
+const finalScore = document.getElementById('final-score');
+const totalTime = document.getElementById('total-time');
+const algorithmBreakdown = document.getElementById('algorithm-breakdown');
+const weakAreasList = document.getElementById('weak-areas-list');
+
+// Screen Management
+function showScreen(screen) {
+    [startScreen, quizScreen, resultsScreen].forEach(s => s.classList.remove('active'));
+    screen.classList.add('active');
 }
 
-// Initialize ball position
-function initializeBall() {
-    ball.style.bottom = '80px';  // In the field area (field is 200px, starts at bottom)
-    ball.style.left = '50%';
-    ball.style.transform = 'translateX(-50%)';
-    ball.classList.remove('shooting', 'in-hands');
+// Timer
+function startTimer() {
+    let seconds = 0;
+    timerInterval = setInterval(() => {
+        seconds++;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }, 1000);
 }
 
-// Initialize shooter position
-function initializeShooter() {
-    shooter.style.bottom = '10%';
-    shooter.classList.remove('running', 'kicking');
-}
-
-// Get random position for goalkeeper (fallback)
-function getRandomPosition() {
-    const positionKeys = Object.keys(goalPositions);
-    const randomKey = positionKeys[Math.floor(Math.random() * positionKeys.length)];
-    return randomKey;
-}
-
-// Smart goalkeeper AI with strategic positioning
-function getSmartGoalkeeperPosition(playerTarget) {
-    const random = Math.random();
-    
-    // 7% chance: Dive to same position as last shot (pattern recognition)
-    if (random < 0.07 && shotHistory.length > 0) {
-        const lastShot = shotHistory[shotHistory.length - 1];
-        return lastShot;
-    }
-    
-    // 60% chance: Favor corner positions (hot zones where players often shoot)
-    if (random < 0.67) { // 7% + 60% = 67%
-        const cornerPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-        return cornerPositions[Math.floor(Math.random() * cornerPositions.length)];
-    }
-    
-    // 20% chance: Favor center positions (easier to reach from center stance)
-    if (random < 0.87) { // 67% + 20% = 87%
-        const centerPositions = ['top-center', 'bottom-center'];
-        return centerPositions[Math.floor(Math.random() * centerPositions.length)];
-    }
-    
-    // 13% chance: Completely random (unpredictable)
-    return getRandomPosition();
-}
-
-// Move goalkeeper to dive position
-function moveGoalkeeper(position) {
-    const pos = goalPositions[position].goalkeeper;
-    goalkeeper.classList.add('diving');
-    goalkeeper.style.bottom = pos.bottom;
-    goalkeeper.style.left = pos.left;
-    goalkeeper.style.transform = 'translateX(-50%)';
-}
-
-// Shoot ball to position
-function shootBall(target, isSaved, goalkeeperPosition) {
-    ball.classList.add('shooting');
-    
-    // If saved, ball goes to goalkeeper's position (caught)
-    // Otherwise, ball goes to the target position (goal)
-    const finalPosition = isSaved ? goalPositions[goalkeeperPosition].ball : goalPositions[target].ball;
-    
-    // Animate ball to final position
-    ball.style.bottom = finalPosition.bottom;
-    ball.style.left = finalPosition.left;
-    
-    // If saved, make ball smaller to show it's in goalkeeper's hands
-    if (isSaved) {
-        setTimeout(() => {
-            ball.classList.add('in-hands');
-        }, 500);
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
     }
 }
 
-// Animate shooter run-up and kick
-function animateShooterKick() {
-    // Run up
-    shooter.classList.add('running');
-    
-    // Kick after run-up
-    setTimeout(() => {
-        shooter.classList.remove('running');
-        shooter.classList.add('kicking');
-    }, 600);
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Handle shoot action
-function handleShoot(event) {
-    if (isAnimating) return;
+// Start Quiz
+function startQuiz() {
+    currentQuiz = generateQuiz();
+    currentQuestionIndex = 0;
+    userAnswers = [];
+    startTime = Date.now();
     
-    isAnimating = true;
-    const target = event.target.dataset.target;
+    showScreen(quizScreen);
+    startTimer();
+    displayQuestion();
+}
+
+// Display Question
+function displayQuestion() {
+    const question = currentQuiz[currentQuestionIndex];
+    questionStartTime = Date.now();
     
-    // Use smart goalkeeper AI instead of random
-    const goalkeeperPosition = getSmartGoalkeeperPosition(target);
-    const isSaved = target === goalkeeperPosition;
+    // Update progress
+    const progress = ((currentQuestionIndex + 1) / currentQuiz.length) * 100;
+    progressFill.style.width = `${progress}%`;
+    questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${currentQuiz.length}`;
     
-    // Track shot history for pattern detection
-    shotHistory.push(target);
-    if (shotHistory.length > 3) {
-        shotHistory.shift(); // Keep only last 3 shots
-    }
+    // Update difficulty badge
+    difficultyBadge.textContent = question.difficulty;
+    difficultyBadge.className = `difficulty-badge ${question.difficulty}`;
+    
+    // Update question text
+    questionText.textContent = question.question;
+    
+    // Update algorithm tag
+    algorithmTag.textContent = question.algorithm;
+    
+    // Update choices
+    const choiceBtns = choicesContainer.querySelectorAll('.choice-btn');
+    choiceBtns.forEach((btn, index) => {
+        const choiceText = btn.querySelector('.choice-text');
+        choiceText.textContent = question.choices[index];
+        btn.classList.remove('selected', 'correct', 'incorrect');
+        btn.disabled = false;
+        btn.onclick = () => selectAnswer(index);
+    });
+    
+    // Hide feedback
+    feedbackContainer.classList.remove('show');
+}
+
+// Select Answer
+function selectAnswer(choiceIndex) {
+    const question = currentQuiz[currentQuestionIndex];
+    const choiceBtns = choicesContainer.querySelectorAll('.choice-btn');
+    const selectedAnswer = question.choices[choiceIndex];
+    const isCorrect = selectedAnswer === question.correct_answer;
+    
+    // Calculate time spent
+    const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
+    
+    // Store answer
+    userAnswers.push({
+        questionId: question.id,
+        algorithm: question.algorithm,
+        selectedAnswer: selectedAnswer,
+        correctAnswer: question.correct_answer,
+        isCorrect: isCorrect,
+        timeSpent: timeSpent
+    });
     
     // Disable all buttons
-    shootButtons.forEach(btn => btn.disabled = true);
+    choiceBtns.forEach(btn => btn.disabled = true);
     
-    // Clear previous highlights
-    goalSections.forEach(section => {
-        section.classList.remove('goal', 'saved');
+    // Highlight correct and incorrect answers
+    choiceBtns.forEach((btn, index) => {
+        const btnAnswer = question.choices[index];
+        if (btnAnswer === question.correct_answer) {
+            btn.classList.add('correct');
+        } else if (index === choiceIndex && !isCorrect) {
+            btn.classList.add('incorrect');
+        }
     });
     
-    // Start shooter animation
-    animateShooterKick();
-    
-    // After shooter runs up and kicks (600ms), move ball and goalkeeper
-    setTimeout(() => {
-        moveGoalkeeper(goalkeeperPosition);
-        shootBall(target, isSaved, goalkeeperPosition);
-    }, 600);
-    
-    // Check result after all animations complete
-    setTimeout(() => {
-        const targetSection = document.querySelector(`.goal-section[data-position="${target}"]`);
-        
-        if (isSaved) {
-            // Goalkeeper saved
-            goalkeeperScore++;
-            goalkeeperScoreEl.textContent = goalkeeperScore;
-            messageEl.textContent = '🧤 SAVED! The goalkeeper caught the ball!';
-            messageEl.className = 'message saved';
-            if (targetSection) targetSection.classList.add('saved');
-        } else {
-            // Goal scored
-            playerScore++;
-            playerScoreEl.textContent = playerScore;
-            messageEl.textContent = '⚽ GOAL! You scored!';
-            messageEl.className = 'message goal';
-            if (targetSection) targetSection.classList.add('goal');
-        }
-        
-        // Check if game is over (first to 5 wins)
-        if (playerScore === 5 || goalkeeperScore === 5) {
-            setTimeout(() => {
-                endGame(playerScore === 5 ? 'player' : 'goalkeeper');
-            }, 1500);
-            return;
-        }
-        
-        // Reset after showing result
-        setTimeout(() => {
-            initializeGoalkeeper();
-            initializeBall();
-            initializeShooter();
-            shootButtons.forEach(btn => btn.disabled = false);
-            isAnimating = false;
-            
-            // Clear highlight
-            setTimeout(() => {
-                if (targetSection) {
-                    targetSection.classList.remove('goal', 'saved');
-                }
-            }, 500);
-        }, 2000);
-    }, 1300);
+    // Show feedback
+    feedbackHeader.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+    feedbackHeader.className = `feedback-header ${isCorrect ? 'correct' : 'incorrect'}`;
+    feedbackExplanation.textContent = question.explanation;
+    feedbackContainer.classList.add('show');
 }
 
-// End game when someone reaches 5 points
-function endGame(winner) {
-    isAnimating = true;
+// Next Question
+function nextQuestion() {
+    currentQuestionIndex++;
     
-    if (winner === 'player') {
-        messageEl.textContent = '🎉 YOU WIN! You scored 5 goals!';
-        messageEl.className = 'message goal';
+    if (currentQuestionIndex < currentQuiz.length) {
+        displayQuestion();
     } else {
-        messageEl.textContent = '😞 GOALKEEPER WINS! 5 saves!';
-        messageEl.className = 'message saved';
+        showResults();
     }
-    
-    // Keep buttons disabled - player must reset to play again
-    shootButtons.forEach(btn => btn.disabled = true);
 }
 
-// Reset game
-function resetGame() {
-    playerScore = 0;
-    goalkeeperScore = 0;
-    shotHistory = []; // Clear shot history for fresh start
-    playerScoreEl.textContent = '0';
-    goalkeeperScoreEl.textContent = '0';
-    messageEl.textContent = '';
-    messageEl.className = 'message';
+// Show Results
+function showResults() {
+    stopTimer();
+    showScreen(resultsScreen);
     
-    goalSections.forEach(section => {
-        section.classList.remove('goal', 'saved');
+    // Calculate score
+    const correctCount = userAnswers.filter(a => a.isCorrect).length;
+    finalScore.textContent = `${correctCount}/${currentQuiz.length}`;
+    
+    // Calculate total time
+    const totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+    totalTime.textContent = formatTime(totalSeconds);
+    
+    // Algorithm performance breakdown
+    const algorithmStats = {};
+    userAnswers.forEach(answer => {
+        if (!algorithmStats[answer.algorithm]) {
+            algorithmStats[answer.algorithm] = { correct: 0, total: 0 };
+        }
+        algorithmStats[answer.algorithm].total++;
+        if (answer.isCorrect) {
+            algorithmStats[answer.algorithm].correct++;
+        }
     });
     
-    initializeGoalkeeper();
-    initializeBall();
-    initializeShooter();
+    // Display algorithm breakdown
+    algorithmBreakdown.innerHTML = '';
+    Object.entries(algorithmStats).forEach(([algorithm, stats]) => {
+        const statDiv = document.createElement('div');
+        statDiv.className = 'algorithm-stat';
+        statDiv.innerHTML = `
+            <span class="algorithm-name">${algorithm}</span>
+            <span class="algorithm-score">${stats.correct}/${stats.total}</span>
+        `;
+        algorithmBreakdown.appendChild(statDiv);
+    });
     
-    shootButtons.forEach(btn => btn.disabled = false);
-    isAnimating = false;
+    // Identify weak areas (algorithms with < 50% correct)
+    const weakAreas = Object.entries(algorithmStats)
+        .filter(([_, stats]) => stats.correct / stats.total < 0.5)
+        .map(([algorithm, _]) => algorithm);
+    
+    // Display weak areas
+    const weakAreasContainer = document.getElementById('weak-areas');
+    if (weakAreas.length > 0) {
+        weakAreasContainer.style.display = 'block';
+        weakAreasList.innerHTML = '';
+        weakAreas.forEach(algorithm => {
+            const weakDiv = document.createElement('div');
+            weakDiv.className = 'weak-area-item';
+            weakDiv.textContent = `Focus on: ${algorithm}`;
+            weakAreasList.appendChild(weakDiv);
+        });
+    } else {
+        weakAreasContainer.style.display = 'none';
+    }
 }
 
-// Event listeners
-shootButtons.forEach(btn => {
-    btn.addEventListener('click', handleShoot);
+// Event Listeners
+startBtn.addEventListener('click', startQuiz);
+nextBtn.addEventListener('click', nextQuestion);
+retakeBtn.addEventListener('click', () => {
+    showScreen(startScreen);
 });
-
-resetBtn.addEventListener('click', resetGame);
-
-// Initialize game
-initializeGoalkeeper();
-initializeBall();
-initializeShooter();
+reviewBtn.addEventListener('click', () => {
+    // Reset to first question for review
+    currentQuestionIndex = 0;
+    showScreen(quizScreen);
+    displayQuestion();
+    
+    // Pre-fill with user's answer
+    const userAnswer = userAnswers[0];
+    const choiceBtns = choicesContainer.querySelectorAll('.choice-btn');
+    choiceBtns.forEach((btn, index) => {
+        const btnAnswer = currentQuiz[0].choices[index];
+        btn.disabled = true;
+        if (btnAnswer === userAnswer.correctAnswer) {
+            btn.classList.add('correct');
+        } else if (btnAnswer === userAnswer.selectedAnswer && !userAnswer.isCorrect) {
+            btn.classList.add('incorrect');
+        }
+    });
+    
+    // Show feedback
+    feedbackHeader.textContent = userAnswer.isCorrect ? '✓ Correct!' : '✗ Incorrect';
+    feedbackHeader.className = `feedback-header ${userAnswer.isCorrect ? 'correct' : 'incorrect'}`;
+    feedbackExplanation.textContent = currentQuiz[0].explanation;
+    feedbackContainer.classList.add('show');
+});

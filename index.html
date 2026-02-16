@@ -3,107 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penalty Shootout Game</title>
+    <title>USACO Bronze Prep - Quick Quiz</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>⚽ Penalty Shootout</h1>
-        
-        <div class="scoreboard">
-            <div class="score-item">
-                <span class="label">Player:</span>
-                <span id="player-score" class="score">0</span>
-            </div>
-            <div class="score-item">
-                <span class="label">Goalkeeper:</span>
-                <span id="goalkeeper-score" class="score">0</span>
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1>🏆 USACO Bronze Prep</h1>
+            <div class="start-content">
+                <p class="subtitle">Master competitive programming in 60-second bursts</p>
+                <div class="quiz-info">
+                    <div class="info-item">
+                        <span class="info-icon">📝</span>
+                        <span class="info-text">10 Questions</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">⏱️</span>
+                        <span class="info-text">~10 Minutes</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">🎯</span>
+                        <span class="info-text">Bronze Level</span>
+                    </div>
+                </div>
+                <button id="start-btn" class="primary-btn">Start Quiz</button>
+                <div class="features">
+                    <p>✓ Algorithm recognition practice</p>
+                    <p>✓ Quick implementation drills</p>
+                    <p>✓ Instant feedback & explanations</p>
+                    <p>✓ Track weak areas</p>
+                </div>
             </div>
         </div>
 
-        <div class="game-area">
-            <!-- Goal structure -->
-            <div class="goal-container">
-                <div class="goal-frame">
-                    <div class="goal-net">
-                        <div class="goal-section" data-position="top-left"></div>
-                        <div class="goal-section" data-position="top-center"></div>
-                        <div class="goal-section" data-position="top-right"></div>
-                        <div class="goal-section" data-position="bottom-left"></div>
-                        <div class="goal-section" data-position="bottom-center"></div>
-                        <div class="goal-section" data-position="bottom-right"></div>
-                    </div>
-                    <div class="goal-posts">
-                        <div class="post left"></div>
-                        <div class="post right"></div>
-                        <div class="crossbar"></div>
-                    </div>
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
                 </div>
-                
-                <!-- Goalkeeper -->
-                <div id="goalkeeper" class="goalkeeper">
-                    <div class="goalkeeper-body">
-                        <div class="goalkeeper-head">😐</div>
-                        <div class="goalkeeper-torso"></div>
-                        <div class="goalkeeper-arms">
-                            <div class="arm left">🤚</div>
-                            <div class="arm right">🤚</div>
-                        </div>
-                        <div class="goalkeeper-legs">
-                            <div class="leg left"></div>
-                            <div class="leg right"></div>
-                        </div>
-                    </div>
+                <div class="progress-text">
+                    <span id="question-number">Question 1 of 10</span>
+                    <span id="timer">0:00</span>
                 </div>
             </div>
-            
-            <!-- Field area -->
-            <div class="field">
-                <div class="penalty-spot"></div>
-                
-                <!-- Shooter -->
-                <div id="shooter" class="shooter">
-                    <div class="shooter-body">
-                        <div class="shooter-head">😤</div>
-                        <div class="shooter-torso"></div>
-                        <div class="shooter-legs">
-                            <div class="leg left"></div>
-                            <div class="leg right"></div>
-                        </div>
-                    </div>
-                </div>
+
+            <!-- Question Display -->
+            <div class="question-container">
+                <div class="difficulty-badge" id="difficulty-badge">Medium</div>
+                <div class="question-text" id="question-text"></div>
+                <div class="algorithm-tag" id="algorithm-tag"></div>
             </div>
-            
-            <!-- Ball - positioned relative to game-area so it can travel from field to goal -->
-            <div id="ball" class="ball">⚽</div>
-        </div>
-        
-        <!-- Shooting controls -->
-        <div class="shooting-controls">
-            <div class="control-row">
-                <button class="shoot-btn" data-target="top-left">↖ Top Left</button>
-                <button class="shoot-btn" data-target="top-center">↑ Top Center</button>
-                <button class="shoot-btn" data-target="top-right">↗ Top Right</button>
+
+            <!-- Answer Choices -->
+            <div class="choices-container" id="choices-container">
+                <button class="choice-btn" data-choice="0">
+                    <span class="choice-letter">A</span>
+                    <span class="choice-text"></span>
+                </button>
+                <button class="choice-btn" data-choice="1">
+                    <span class="choice-letter">B</span>
+                    <span class="choice-text"></span>
+                </button>
+                <button class="choice-btn" data-choice="2">
+                    <span class="choice-letter">C</span>
+                    <span class="choice-text"></span>
+                </button>
+                <button class="choice-btn" data-choice="3">
+                    <span class="choice-letter">D</span>
+                    <span class="choice-text"></span>
+                </button>
             </div>
-            <div class="control-row">
-                <button class="shoot-btn" data-target="bottom-left">← Bottom Left</button>
-                <button class="shoot-btn" data-target="bottom-center">• Center</button>
-                <button class="shoot-btn" data-target="bottom-right">→ Bottom Right</button>
+
+            <!-- Feedback Section (hidden initially) -->
+            <div class="feedback-container" id="feedback-container">
+                <div class="feedback-header" id="feedback-header"></div>
+                <div class="feedback-explanation" id="feedback-explanation"></div>
+                <button id="next-btn" class="primary-btn">Next Question</button>
             </div>
         </div>
 
-        <div class="message" id="message"></div>
-        
-        <div class="controls">
-            <button id="reset-btn" class="reset-btn">Reset Game</button>
-        </div>
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen">
+            <h1>📊 Quiz Complete!</h1>
+            <div class="results-content">
+                <div class="score-display">
+                    <div class="score-circle">
+                        <span id="final-score" class="final-score">0/10</span>
+                        <span class="score-label">Score</span>
+                    </div>
+                    <div class="time-taken">
+                        <span class="time-icon">⏱️</span>
+                        <span id="total-time">0:00</span>
+                    </div>
+                </div>
 
-        <div class="instructions">
-            <h3>How to Play:</h3>
-            <p>Click on one of the arrows to shoot the ball in that direction. Try to score past the goalkeeper!</p>
+                <div class="performance-breakdown">
+                    <h3>Performance by Algorithm</h3>
+                    <div id="algorithm-breakdown"></div>
+                </div>
+
+                <div class="weak-areas" id="weak-areas">
+                    <h3>Areas to Focus On</h3>
+                    <div id="weak-areas-list"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="retake-btn" class="primary-btn">Take Another Quiz</button>
+                    <button id="review-btn" class="secondary-btn">Review Answers</button>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="questions.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
